@@ -31,7 +31,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND (${GCC} OR ${CLANG}) )
 endif()
 
 # Executable
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} test.cpp)
 
 # Install settings
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
