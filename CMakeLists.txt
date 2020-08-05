@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 # Project settings
-project(mycsv CXX)
+project(mcsv CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -30,8 +30,14 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND (${GCC} OR ${CLANG}) )
     add_link_options("-fsanitize=address,leak,undefined")
 endif()
 
-# Executable
-add_executable(${PROJECT_NAME} test.cpp)
+# Header-only library
+add_library(mcsv INTERFACE)
+target_include_directories(mcsv INTERFACE ${CMAKE_SOURCE_DIR}/include)
+set_target_properties(mcsv PROPERTIES PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/mcsv/mcsv.hpp)
+install(TARGETS mcsv PUBLIC_HEADER DESTINATION include/mcsv)
 
-# Install settings
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+# Test program
+add_executable(test ${CMAKE_SOURCE_DIR}/test/test.cpp)
+target_link_libraries(test mcsv)
+configure_file(test/test.csv test.csv COPYONLY)
+

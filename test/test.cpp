@@ -1,10 +1,10 @@
 #include <iostream>
 
-#include "mcsv.hpp"
+#include <mcsv/mcsv.hpp>
 
 int main() 
 {    
-    mcsv::default_dataframe df1(std::filesystem::current_path()/".."/"test.csv");
+    mcsv::default_dataframe df1(std::filesystem::current_path()/"test.csv");
     
     std::cout << "df1:\n" << df1 << "\n";
     
