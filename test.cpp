@@ -14,7 +14,7 @@ int main()
     
     std::cout << "df2:\n" << df2 << "\n";
     
-    std::cout << df1.select_rows( df1("col2","col3") < std::tuple(50,50) ).to_eigen_array<double,2 ,4>() << "\n";
+    std::cout << df1.select_rows( df1("col2") < std::tuple(10) || df1("col3") > std::tuple(200) ) << "\n";
     
     return 0;
 }

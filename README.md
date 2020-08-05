@@ -66,16 +66,34 @@ col2 col4
 ```
 
 * Combined filtering
+
 ```c++
 auto df4 = df3.select_rows( df3("col2") == std::tuple(20) );
 
 std::cout << df4 << std::endl;
 ```
-Output
+Output:
 
 ```
 col2 col4
 20   40
+```
+
+* Use logical operators
+
+Note: So fare, the logical operators only change the rows. The columns stay untouched.
+
+```c++
+auto df5 = df1.select_rows( df1("col2") < std::tuple(10) || df1("col3") > std::tuple(200) )
+
+std::cout << df5 << std::endl;
+```
+Output:
+
+```
+col1 col2 col3 col4
+1    2    3    4
+100  200  300  400
 ```
 
 ### Iterating through the data

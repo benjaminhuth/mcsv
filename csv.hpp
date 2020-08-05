@@ -449,6 +449,40 @@ public:
     {
         return row_wise_comparison(std::greater_equal{}, tuple);
     }
+    
+    /// @brief logical AND operator, only affects the row mask
+    template<int OC>
+    auto operator&&(const dataframe<loader_t, OC> &df)
+    {
+        static_assert( C == -1 || C == OC, "number of columns does not match");
+        
+        if( df.m_loader != m_loader )
+            throw std::runtime_error("cannot logically combine dataframes of differen csv-files");
+        
+        std::vector<bool> new_row_mask(m_row_mask.size());
+        
+        for(std::size_t i=0ul; i<m_row_mask.size(); ++i)
+            new_row_mask[i] = m_row_mask[i] && df.m_row_mask[i];
+        
+        return dataframe<loader_t, C>(m_loader, new_row_mask, m_col_mask);
+    }
+    
+    /// @brief logical OR operator, only affects the row mask
+    template<int OC>
+    auto operator||(const dataframe<loader_t, OC> &df)
+    {
+        static_assert( C == -1 || C == OC, "number of columns does not match");
+        
+        if( df.m_loader != m_loader )
+            throw std::runtime_error("cannot logically combine dataframes of differen csv-files");
+        
+        std::vector<bool> new_row_mask(m_row_mask.size());
+        
+        for(std::size_t i=0ul; i<m_row_mask.size(); ++i)
+            new_row_mask[i] = m_row_mask[i] || df.m_row_mask[i];
+        
+        return dataframe<loader_t, C>(m_loader, new_row_mask, m_col_mask);
+    }
         
     /// @brief filters the dataframe with respect to column names
     /// @param args parameter-pack, which only is allowed to be of string-like types
@@ -478,7 +512,7 @@ public:
         static_assert( C == -1 || C == OC, "col count mismatch" );
         
         if( df.m_loader != m_loader )
-            throw std::runtime_error("cannot select rows based on a different dataframe");
+            throw std::runtime_error("cannot select rows based on a different csv-file");
         
         return dataframe<loader_t, C>(m_loader, df.m_row_mask, m_col_mask);
     }
@@ -490,7 +524,7 @@ public:
     auto select_cols(const dataframe<loader_t, OC> &df)
     {        
         if( df.m_loader != m_loader )
-            throw std::runtime_error("cannot select ros based on a different dataframe");
+            throw std::runtime_error("cannot select ros based on a different csv-file");
         
         return dataframe<loader_t, C>(m_loader, m_row_mask, df.m_col_mask);
     }
