@@ -111,14 +111,14 @@ public:
     const auto &at(std::size_t row, std::size_t col) const
     {
         if( m_data.size() < row )
-            throw std::runtime_error(fmt::format(
-                                         "csv file has only {} rows, but row {} has been requested",
-                                         m_data.size(), row ));
+            throw std::runtime_error(
+                fmt::format("{}: csv file has only {} rows, but row {} has been requested",
+                            m_data.size(), row, __func__));
 
         if( m_header.size() < col )
-            throw std::runtime_error(fmt::format(
-                                         "csv file has only {} cols, but col {} has been requested",
-                                         m_header.size(), col ));
+            throw std::runtime_error(
+                fmt::format("{}: csv file has only {} cols, but col {} has been requested",
+                            m_header.size(), col, __func__));
 
         return m_data[row][col];
     }
@@ -147,9 +147,11 @@ public:
         m_row_mask(m_loader->data().size(), true),
         m_col_mask(m_loader->header().size(), true)
     {
-        if constexpr( C != -1 )
-            if( cols() != C )
-                throw std::runtime_error("internal error: column mismatch in constructor");
+        if( C != -1 && cols() != C )
+            throw std::runtime_error(
+                fmt::format("{}: compile-time column number (which is {}) mismatches run-time column number (which is {})",
+                            __func__, C, cols())
+            );
     }
 
 private:
@@ -164,9 +166,11 @@ private:
         m_row_mask(row_mask),
         m_col_mask(col_mask)
     {
-        if constexpr( C != -1 )
-            if( cols() != C )
-                throw std::runtime_error("internal error: column mismatch in constructor");
+        if( C != -1 && cols() != C )
+            throw std::runtime_error(
+                fmt::format("{}: compile-time column number (which is {}) mismatches run-time column number (which is {})",
+                            __func__, C, cols())
+            );
     }
 
     /// @brief wrapper-iterator, which holds a base iterator and a reference
@@ -218,7 +222,9 @@ private:
         using base_it_t = decltype(std::begin(std::declval<container_t>()));
 
         if( c.size() != mask.size() )
-            throw std::runtime_error("tried to create masked iterable with wrong-sized mask");
+            throw std::runtime_error(
+                fmt::format("{}: tried to create masked iterable with wrong-sized mask", __func__)
+            );
 
         // prepare iterators to have correct start-point
         auto base_it = c.begin();
@@ -328,7 +334,9 @@ private:
         static_assert( C == -1 || C == static_cast<int>(N), "row-wise comparison only possible if tuple size matches column number" );
 
         if( std::count(m_col_mask.begin(),m_col_mask.end(),true) != N )
-            throw std::runtime_error("row-wise comparison only possible if tuple size matches column number");
+            throw std::runtime_error(
+                fmt::format("{}: row-wise comparison only possible if tuple size matches column number",__func__)
+            );
 
         auto new_row_mask = m_row_mask;
 
@@ -351,7 +359,7 @@ private:
     auto col_as_str_vector(std::size_t idx)
     {
         if( idx > m_col_mask.size() || m_col_mask[idx] == false )
-            throw std::runtime_error("col_as_vector: requested invalid column");
+            throw std::runtime_error(std::string(__func__) + "col_as_vector: requested invalid column");
 
         std::vector<std::string> col;
         col.reserve(rows());
@@ -382,7 +390,7 @@ private:
     auto row_as_str_vector(std::size_t idx)
     {
         if( idx > m_row_mask.size() || m_row_mask[idx] == false )
-            throw std::runtime_error("row_as_vector: requested invalid column");
+            throw std::runtime_error(std::string(__func__) + "row_as_vector: requested invalid column");
 
         return m_loader->data()[idx];
     }
@@ -465,6 +473,40 @@ public:
     {
         return row_wise_comparison(std::greater_equal{}, tuple);
     }
+    
+    /// @brief filters rows with respect to a iterable. 
+    /// Dataframe needs to have exactly one active column!
+    /// TODO extend for tuples of vectors?
+    template<typename iterable_t,
+             typename = decltype(std::begin(std::declval<iterable_t>())),
+             typename = decltype(std::end(std::declval<iterable_t>()))>
+    auto is_in(const iterable_t &iterable) const
+    {
+        using T = typename iterable_t::value_type;
+        
+        static_assert( C == -1 || C == 1, "number of columns must be dynamic or 1");
+        
+        if( cols() != 1 )
+            throw std::runtime_error(
+                fmt::format("{}: number of columns must be 1!", __func__)
+            );
+        
+        const auto col_idx = std::find(m_col_mask.begin(), m_col_mask.end(), true) - m_col_mask.begin();
+        auto new_row_mask = m_row_mask;
+        
+        for(std::size_t i=0ul; i<new_row_mask.size(); ++i)
+        {
+            if( new_row_mask[i] == true)
+            {
+                const T val = convert<T>(m_loader->data()[i][static_cast<std::size_t>(col_idx)]);
+            
+                if( std::none_of(iterable.begin(), iterable.end(), [&](auto a){ return a == val; }) )
+                    new_row_mask[i] = false;
+            }
+        }
+        
+        return dataframe<loader_t, 1>(m_loader, new_row_mask, m_col_mask);
+    }
 
     /// @brief logical AND operator, only affects the row mask
     template<int OC>
@@ -473,7 +515,9 @@ public:
         static_assert( C == -1 || C == OC, "number of columns does not match");
 
         if( df.m_loader != m_loader )
-            throw std::runtime_error("cannot logically combine dataframes of differen csv-files");
+            throw std::runtime_error(
+                fmt::format("{}: cannot logically combine dataframes of differen csv-files", __func__)
+            );
 
         std::vector<bool> new_row_mask(m_row_mask.size());
 
@@ -490,7 +534,9 @@ public:
         static_assert( C == -1 || C == OC, "number of columns does not match");
 
         if( df.m_loader != m_loader )
-            throw std::runtime_error("cannot logically combine dataframes of differen csv-files");
+            throw std::runtime_error(
+                fmt::format("{}cannot logically combine dataframes of differen csv-files", __func__)
+            );
 
         std::vector<bool> new_row_mask(m_row_mask.size());
 
@@ -525,10 +571,10 @@ public:
     template<int OC>
     auto select_rows(const dataframe<loader_t, OC> &df) const
     {
-        static_assert( C == -1 || C == OC, "col count mismatch" );
-
         if( df.m_loader != m_loader )
-            throw std::runtime_error("cannot select rows based on a different csv-file");
+            throw std::runtime_error(
+                fmt::format("{}: cannot select rows based on a different csv-file.", __func__)
+            );
 
         return dataframe<loader_t, C>(m_loader, df.m_row_mask, m_col_mask);
     }
@@ -540,7 +586,9 @@ public:
     auto select_cols(const dataframe<loader_t, OC> &df) const
     {
         if( df.m_loader != m_loader )
-            throw std::runtime_error("cannot select ros based on a different csv-file");
+            throw std::runtime_error(
+                fmt::format("{}: cannot select rows based on a different csv-file.", __func__)
+            );
 
         return dataframe<loader_t, C>(m_loader, m_row_mask, df.m_col_mask);
     }
@@ -556,7 +604,9 @@ public:
         static_assert( C == -1 || C == static_cast<int>(N), "number of template parameters does not match number of cols");
 
         if( N != cols() )
-            throw std::runtime_error("number of template parameters does not match number of cols");
+            throw std::runtime_error(
+                fmt::format("{}: number of template parameters does not match number of cols", __func__)
+            );
 
         std::tuple< std::vector<Ts>... > result_tuple;
 
@@ -606,10 +656,14 @@ public:
         static_assert( OC == -1 || C == -1 || OC == C, "column number mismatch for fixed size eigen export");
 
         if( OR != -1 && rows() != OR )
-            throw std::runtime_error("row number mismatch for fixed size eigen export");
+            throw std::runtime_error(
+                fmt::format("{}: row number mismatch for fixed size eigen export", __func__)
+            );
 
         if( OC != -1 && cols() != OC )
-            throw std::runtime_error("column number mismatch for fixed size eigen export");
+            throw std::runtime_error(
+                fmt::format("{}: column number mismatch for fixed size eigen export", __func__)
+            );
 
         Eigen::Array<T, OR, OC> array;
         array.resize(rows(),cols());
@@ -664,9 +718,10 @@ auto &operator<<(std::ostream &os, const dataframe<loader_t, C> &df)
 }
 
 /// @brief utility function to read csv-file
+template<int C = -1>
 auto read_csv(std::filesystem::path path)
 {
-    return default_dataframe(path);
+    return dataframe<default_loader, C>(path);
 }
 
 } // namespace csv

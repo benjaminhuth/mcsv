@@ -24,6 +24,12 @@ col1 col2 col3 col4
 100  200  300  400
 ```
 
+If the number of columns of the csv-file is known at compile-time, we can pass it as a template-parameter to enable additional compile-time checks. The constructor of the dataframe checks if the number is correct and throws an exception otherwise.
+
+```c++
+auto df1 = mcsv::read_csv<4>("test.csv");
+```
+
 Some notes on the csv-file import:
 
 * All column headers must be unique
@@ -79,14 +85,32 @@ col2 col4
 20   40
 ```
 
+* Filter with STL-containers
+
+Note: At the moment, this works only, if the dataframe has exactly one row.
+
+```c++
+std::vector<int> vec = { 1,2,3,4,5,6,7,8,9,10 };
+auto df5 = df1.select_rows( df1("col1").is_in(vec) )
+
+std::cout << df5 << std::endl;
+```
+Output:
+
+```
+col1 col2 col3 col4
+1    2    3    4
+10   20   30   40
+```
+
 * Use logical operators
 
 Note: So fare, the logical operators only change the rows. The columns stay untouched.
 
 ```c++
-auto df5 = df1.select_rows( df1("col2") < std::tuple(10) || df1("col3") > std::tuple(200) )
+auto df6 = df1.select_rows( df1("col2") < std::tuple(10) || df1("col3") > std::tuple(200) )
 
-std::cout << df5 << std::endl;
+std::cout << df6 << std::endl;
 ```
 Output:
 
