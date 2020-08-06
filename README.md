@@ -40,7 +40,7 @@ Some notes on the csv-file import:
 ### Filtering the data
 There exist several possibilities to filter rows and columns of the csv-file. The basic principle is the following: Each filter-operation returns a new `dataframe`-object. This works without copying the data, all dataframes originating in a certain file hold one `std::shared_ptr` to the actual data. The only things that are changed by these operations are the information, which columns or rows are active.
 
-* Filter columns with `operator()`: 
+* **Filter columns:**: 
 
 ```c++
 auto df2 = df1("col2","col4");
@@ -56,7 +56,7 @@ col2 col4
 200  400
 ```
 
-* Filter rows with comparison-operators:
+* **Filter rows with comparison-operators:**:
 
 ```c++
 auto df3 = (df2 > std::tuple(10,10))
@@ -71,7 +71,7 @@ col2 col4
 200  400
 ```
 
-* Combined filtering
+* **Combined filtering:**
 
 ```c++
 auto df4 = df3.select_rows( df3("col2") == std::tuple(20) );
@@ -85,7 +85,7 @@ col2 col4
 20   40
 ```
 
-* Filter with STL-containers
+* **Filter with STL-containers:**
 
 Note: At the moment, this works only, if the dataframe has exactly one row.
 
@@ -103,7 +103,7 @@ col1 col2 col3 col4
 10   20   30   40
 ```
 
-* Use logical operators
+* **Use logical operators:**
 
 Note: So fare, the logical operators only change the rows. The columns stay untouched.
 
