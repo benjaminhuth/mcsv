@@ -8,10 +8,10 @@ CSV-library in C++17 which is not a Microsoft compiler. Highlights:
 A CSV-library, which is meant allow easy dataframe-manipulation inspired by the python-library [pandas](https://pandas.pydata.org/docs/index.html).
 
 ### Loading and viewing the data
-Simply load a csv-file by passing its path as `std::string` or `std::filesystem::path` to the constructor. The csv-file can then be printed e.g. with `std::cout`.
+Simply load a csv-file by passing its path as `std::string` or `std::filesystem::path` to the utility-function `mcsv::read_csv`. The csv-file can then be printed e.g. with `std::cout`.
 
 ```c++
-csv::default_dataframe df1("test.csv");
+auto df1 = mcsv::read_csv("test.csv");
 
 std::cout << df1 << std::endl;
 ```

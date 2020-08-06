@@ -643,6 +643,8 @@ public:
 #endif // CSV_EIGEN_SUPPORT
 };
 
+using default_dataframe = dataframe<default_loader>;
+
 /// @brief not very sophisticated print method
 template<class loader_t, int C>
 auto &operator<<(std::ostream &os, const dataframe<loader_t, C> &df)
@@ -661,7 +663,11 @@ auto &operator<<(std::ostream &os, const dataframe<loader_t, C> &df)
     return os;
 }
 
-using default_dataframe = dataframe<default_loader>;
+/// @brief utility function to read csv-file
+auto read_csv(std::filesystem::path path)
+{
+    return default_dataframe(path);
+}
 
 } // namespace csv
 

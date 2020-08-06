@@ -4,7 +4,7 @@
 
 int main() 
 {    
-    mcsv::default_dataframe df1(std::filesystem::current_path()/"test.csv");
+    auto df1 = mcsv::read_csv(std::filesystem::current_path()/"test.csv");
     
     std::cout << "df1:\n" << df1 << "\n";
     
