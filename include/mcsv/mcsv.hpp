@@ -468,7 +468,7 @@ public:
 
     /// @brief logical AND operator, only affects the row mask
     template<int OC>
-    auto operator&&(const dataframe<loader_t, OC> &df)
+    auto operator&&(const dataframe<loader_t, OC> &df) const
     {
         static_assert( C == -1 || C == OC, "number of columns does not match");
 
@@ -485,7 +485,7 @@ public:
 
     /// @brief logical OR operator, only affects the row mask
     template<int OC>
-    auto operator||(const dataframe<loader_t, OC> &df)
+    auto operator||(const dataframe<loader_t, OC> &df) const
     {
         static_assert( C == -1 || C == OC, "number of columns does not match");
 
@@ -523,7 +523,7 @@ public:
     /// @param df input-dataframe, from which the rows are used
     /// @return dataframe, which has the rows of the input dataframe, but the original columns
     template<int OC>
-    auto select_rows(const dataframe<loader_t, OC> &df)
+    auto select_rows(const dataframe<loader_t, OC> &df) const
     {
         static_assert( C == -1 || C == OC, "col count mismatch" );
 
@@ -537,7 +537,7 @@ public:
     /// @param df input-dataframe, from which the collumns are used
     /// @return dataframe, which has the columns of the input dataframe, but the original rows
     template<int OC>
-    auto select_cols(const dataframe<loader_t, OC> &df)
+    auto select_cols(const dataframe<loader_t, OC> &df) const
     {
         if( df.m_loader != m_loader )
             throw std::runtime_error("cannot select ros based on a different csv-file");
@@ -549,7 +549,7 @@ public:
     /// @tparam Ts the types in which the columns can be converted
     /// @return a std::vector, if Ts is just one type, otherwise a std::tuple of std::vectors
     template<typename... Ts>
-    auto cols_to_vectors()
+    auto cols_to_vectors() const
     {
         constexpr std::size_t N = std::tuple_size_v<std::tuple<Ts...>>;
 
@@ -601,7 +601,7 @@ public:
     /// @tparam OC the columns of the Eigen::Array (-1 for Eigen::Dynamic)
     /// @return A fixed- or dynamic sized Eigen::Array
     template<typename T, int OR = -1, int OC = -1>
-    auto to_eigen_array()
+    auto to_eigen_array() const
     {
         static_assert( OC == -1 || C == -1 || OC == C, "column number mismatch for fixed size eigen export");
 
@@ -635,7 +635,7 @@ public:
     /// @tparam OC the columns of the Eigen::Matrix (-1 for Eigen::Dynamic)
     /// @return A fixed- or dynamic sized Eigen::Matrix
     template<typename T, int OR = -1, int OC = -1>
-    auto to_eigen_matrix()
+    auto to_eigen_matrix() const
     {
         return to_eigen_array<T,OR,OC>().matrix();
     }
